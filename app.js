@@ -47,7 +47,7 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-console.log("Hello World!");
+console.log("Welcome TOFA NodeJS!!");
 
 
 module.exports = app;
