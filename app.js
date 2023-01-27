@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
+var logRouter = require('./routes/log');
+var adminRouter = require('./routes/admin');
 var usersRouter = require('./routes/users');
 const cors = require("cors");
 
@@ -25,6 +27,8 @@ app.use(cors({
 }));
 
 app.use('/', indexRouter);
+app.use('/log', logRouter);
+app.use('/api/admin', adminRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
@@ -43,7 +47,7 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-console.log("Hello World!");
+console.log("Welcome TOFA NodeJS!!");
 
 
 module.exports = app;
