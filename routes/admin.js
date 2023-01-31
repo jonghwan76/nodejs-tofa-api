@@ -44,7 +44,7 @@ router.post('/wait-list', function(req, res, next) {
       "left outer join resources c on b.resources_id = c.resources_id  and c.resources_id != 35\n" +
       "inner join role d on a.id = d.id\n" +
       "where\n" +
-      "    a.allowance <> 1\n" +
+      "    ifnull(a.allowance,0) <> 1\n" +
       "group by\n" +
       "    a.account_id,\n" +
       "    a.username,\n" +
