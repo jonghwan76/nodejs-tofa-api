@@ -2,6 +2,10 @@
  1) npm install cors
  2) npm install express mysql
  3) npm install request
+ 4) npm install mysql2
+
+# PM2 설치
+ npm install pm2 -g
 
 # PM2 사용법
  1) 프로젝트 실행 : pm2 start www

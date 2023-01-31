@@ -1,8 +1,9 @@
 var express = require('express');
 var url = require('url');
 var router = express.Router();
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
+/*
 const conn = {  // mysql 접속 설정
   host: '10.39.234.80',
   port: '3306',
@@ -10,6 +11,16 @@ const conn = {  // mysql 접속 설정
   password: 'hM0415!!',
   database: 'tofa_humetro'
 };
+ */
+const conn = {  // mysql 접속 설정
+  host: '1.240.13.109',
+  port: '3307',
+  user: 'tofa1',
+  password: '123qwe!@#',
+  database: 'tofa_humetro'
+};
+
+
 var connection = mysql.createConnection(conn); // DB 커넥션 생성
 connection.connect();   // DB 접속
 
@@ -20,6 +31,7 @@ var user_log_query = "select\n" +
     "            a.username,\n" +
     "            a.email,\n" +
     "            b.login_ip,\n" +
+    "            a.account_id,\n" +
     "            date_format(b.login_time, '%Y-%m-%d %H:%i:%s') as login_time\n" +
     "        from account a\n" +
     "        inner join account_log b on a.account_id = b.account_id\n" +

@@ -1,7 +1,7 @@
 var express = require('express');
 var url = require('url');
 var router = express.Router();
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
 /*
 const conn = {  // mysql 접속 설정
@@ -11,16 +11,15 @@ const conn = {  // mysql 접속 설정
   password: 'hM0415!!',
   database: 'tofa_humetro'
 };
- */
+*/
 
 const conn = {  // mysql 접속 설정
-  host: '115.85.182.195',
-  port: '23306',
-  user: 'hm_admin',
-  password: 'hM0415!!',
+  host: '1.240.13.109',
+  port: '3307',
+  user: 'tofa1',
+  password: '123qwe!@#',
   database: 'tofa_humetro'
 };
-
 
 var connection = mysql.createConnection(conn); // DB 커넥션 생성
 connection.connect();   // DB 접속
