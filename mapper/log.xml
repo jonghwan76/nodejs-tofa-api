@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="logMapper">
+    <!-- 사용자 로그인 이력 -->
+    <select id="userlogList">
+        select
+            a.dept,
+            a.username,
+            a.email,
+            b.login_ip,
+            a.account_id,
+            date_format(b.login_time, '%Y-%m-%d %H:%i:%s') as login_time
+        from account a
+        inner join account_log b on a.account_id = b.account_id
+        where b.login_time between str_to_date(#{startDate}, '%Y-%m-%d %H:%i:%s')
+            and str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s');
+    </select>
+
+    <!-- 사용자 메뉴접속 이력 -->
+    <select id="menulogList">
+        select
+            a.name,
+            date_format(b.menu_time, '%Y-%m-%d %H:%i:%s') as menu_time
+        from resources a
+        inner join account_menu_log b on a.resources_id = b.menu_id
+        where
+            b.account_id = #{account_id}
+            and b.menu_time between str_to_date(#{startDate}, '%Y-%m-%d %H:%i:%s')
+            and str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s');
+    </select>
+</mapper>

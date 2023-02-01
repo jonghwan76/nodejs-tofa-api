@@ -3,6 +3,11 @@
  2) npm install express mysql
  3) npm install request
  4) npm install mysql2
+ 5) npm install express-session
+ 6) npm install session-file-store
+ 7) npm install mybatis-mapper 
+ 8) npm install properties-reader
+ 
 
 # PM2 설치
  npm install pm2 -g
@@ -16,3 +21,9 @@
  6) 프로세스 리로드 : pm2 reload <appname>
  7) 성능 사용량, 프로세스 목록, 로그 확인 : pm2 monit
  8) 최근 서버로그를 15줄까지 : pm2 logs <appname>
+
+
+# 세션 적용 : https://han-py.tistory.com/414
+# MyBatis 적용
+ - https://lts0606.tistory.com/109
+ - https://meyouus.tistory.com/92

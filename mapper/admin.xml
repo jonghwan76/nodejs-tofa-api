@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="adminMapper">
+    <!-- 어드민 > 사용자관리 > 사용자정보 조회 -->
+    <select id="selectUserInfo">
+        select
+            concat(a.account_id,'') as account_id,
+            a.username,
+            a.email,
+            a.dept,
+            a.phone,
+            d.role_name,
+            concat(d.id,'') as role_id,
+            DATE_FORMAT(join_date, '%Y-%m-%d %H:%i:%s') as join_date,
+            group_concat(c.resources_id) as resourceCodeList,
+            group_concat(c.name ORDER BY c.resources_id ASC) as resourceList
+        from account a
+        left outer join account_resource b on a.account_id = b.account_id
+        left outer join resources c on b.resources_id = c.resources_id
+        inner join role d on a.id = d.id
+        where
+            a.account_id = #{account_id}
+        group by a.account_id, a.username, a.email, a.phone, d.role_name, d.id, DATE_FORMAT(join_date, '%Y-%m-%d %H:%i:%s')
+    </select>
+
+    <!-- 어드민 > 사용자관리 > 사용자 목록 조회 -->
+    <select id="selectUserList">
+        select
+            concat(a.account_id,'') as account_id,
+            concat(a.username,'') as username,
+            concat(a.email,'') as email,
+            case when concat(a.allowance,'') = '1' then '승인' else '신청' end as allowance,
+            concat(a.phone,'') as phone,
+            concat(d.role_name,'') as role_name,
+            ifnull(dept,'') as dept,
+            DATE_FORMAT(a.join_date, '%Y-%m-%d %H:%i:%s') as join_date,
+            group_concat(c.resources_id) as resourceCodeList,
+            group_concat(c.name ORDER BY c.resources_id ASC) as resourceList
+        from account a
+        left outer join account_resource b on a.account_id = b.account_id
+        left outer join resources c on b.resources_id = c.resources_id and c.resources_id <![CDATA[<>]]> 35
+        inner join role d on a.id = d.id
+        where
+        1=1
+        <if test="allowance != null and allowance != ''">
+            and ifnull(allowance,0) = #{allowance}
+        </if>
+
+        <if test="searchType != null and searchType != ''">
+            <if test="searchType == 'join_date'">
+                and date_format(a.join_date, '%Y-%m-%d %H:%i:%s') like concat('%', #{searchText}, '%')
+            </if>
+            <if test="searchType != 'join_date'">
+                and a.${searchType} like concat('%', #{searchText}, '%')
+            </if>
+        </if>
+        <if test="(searchType == null or searchType == '') and searchText != null">
+            and (
+            a.username like concat('%', #{searchText}, '%')
+            or
+            a.email like concat('%', #{searchText}, '%')
+            or
+            a.phone like concat('%', #{searchText}, '%')
+            or
+            date_format(a.join_date, '%Y-%m-%d %H:%i:%s') like concat('%', #{searchText}, '%')
+            or
+            a.dept like concat('%', #{searchText}, '%')
+            )
+        </if>
+        group by
+            a.account_id,
+            a.username,
+            a.email,
+            a.allowance,
+            a.phone,
+            d.role_name,
+            DATE_FORMAT(join_date, '%Y-%m-%d %H:%i:%s')
+    </select>
+
+
+    <!-- 어드민 > 사용자관리 > 정보관리 시용자 목록 -->
+    <update id="approvalJoin">
+        update account set allowance = 1 where account_id in (?)
+    </update>
+
+    <!-- 어드민 > 사용자관리 > 사용자 권한 삭제 처리 -->
+    <update id="deleteResourceList">
+        delete from account_resource where account_id in (?)
+    </update>
+
+    <!-- 어드민 > 사용자관리 > 가입거절시 사용자 삭제 처리 -->
+    <delete id="deleteAccountList">
+        delete from account where account_id in (?)
+    </delete>
+
+    <!-- 어드민 > 사용자관리 > 회원 권한 정보 수정시 권한 삭제처리 -->
+    <delete id="deleteResource">
+        delete from account_resource where account_id = #{account_id}
+    </delete>
+
+    <!-- 어드민 > 사용자관리 > 회원 권한 정보 수정시 권한 추가 쿼리 -->
+    <insert id="insertAccountResource">
+        insert into account_resource(account_id, resources_id) values (#{account_id}, #{resources_id})
+    </insert>
+</mapper>
