@@ -4,6 +4,7 @@ var router = express.Router();
 const mysql = require('mysql2');
 const mybatisMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
+const bcrypt = require("bcrypt");
 var properties = PropertiesReader('config/dev.properties');
 
 const conn = {  // mysql 접속 설정
@@ -18,11 +19,37 @@ mybatisMapper.createMapper([ 'mapper/admin.xml' ]);
 var connection = mysql.createConnection(conn); // DB 커넥션 생성
 connection.connect();   // DB 접속
 
+/* 세션 로그인 처리 */
+router.post('/login', function(req, res, next) {
+  var jsonBody = req.body;
+
+  req.session.userId = jsonBody.userId;
+  req.session.is_logined = true;
+  res.send('success login:' + req.session.is_logined);
+});
+
+/* 세션 로그아웃 처리 */
+router.post('/logout', function(req, res, next) {
+  req.session.destroy();  // 내부 sessions 폴터 캐쉬 삭제
+  res.send('logout')
+});
+
+/* 로그인 여부 체크 */
+router.post('/check', function(req, res, next) {
+  console.log('is login:' + req.session.is_logined);
+  console.log('login_id:' + req.session.userId);
+
+  if(req.session.is_logined){
+    return res.json({message: 'user 있다'});
+  }else{
+    return res.json({message: 'user 없음'});
+  }
+});
+
+
 /* 가입 승인대상 목록 조회 */
 router.post('/wait-list', function(req, res, next) {
-
   var jsonBody = req.body;
-  var uri = req.url;
 
   let param = {allowance:0};
   let format = {language: 'sql', indent: ''};
@@ -44,7 +71,7 @@ router.post('/wait-list', function(req, res, next) {
 /* 가입 승인대상 목록 조회 */
 router.post('/info-list', function(req, res, next) {
   var jsonBody = req.body;
-  var uri = req.url;
+  // var uri = req.url;
   var searchType = jsonBody.searchType;
   var searchText = jsonBody.searchText;
 
@@ -70,7 +97,7 @@ router.post('/info-list', function(req, res, next) {
 /* 회원 한명 조회 */
 router.post('/member-info', function(req, res, next) {
   var jsonBody = req.body;
-  var uri = req.url;
+  // var uri = req.url;
   let param = {account_id:jsonBody.account_id};
   let format = {language: 'sql', indent: ''};
   let query = mybatisMapper.getStatement('adminMapper', 'selectUserInfo', param, format);
@@ -91,8 +118,8 @@ router.post('/approval-join', function(req, res, next) {
   const retJson = {};
 
   var jsonBody = req.body;
-  var uri = req.url;
-  var query = url.parse(uri, true).query;
+  // var uri = req.url;
+  // var query = url.parse(uri, true).query;
   var account_ids = jsonBody.account_ids;
 
   //어드민 > 사용자관리 > 정보관리 시용자 목록
