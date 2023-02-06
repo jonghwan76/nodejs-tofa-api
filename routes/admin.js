@@ -19,6 +19,18 @@ mybatisMapper.createMapper([ 'mapper/admin.xml' ]);
 var connection = mysql.createConnection(conn); // DB 커넥션 생성
 connection.connect();   // DB 접속
 
+/* 암호화 테스트 */
+router.post('/encTest', function(req, res, next) {
+  const PW = 'pass';
+  const encryptedPW = bcrypt.hashSync(PW, 10);
+  // const same = bcrypt.compareSync(PW, encryptedPW);
+  const same = bcrypt.compareSync(PW, "$2a$10$keXZE2lRKHNfVyRkc4d7P.fOj5ktHFIeXDyuLal0V1J5wa.hFDlwK");
+
+  console.log("encryptedPW:" + encryptedPW);
+  console.log("same:" + same);
+  return res.json({encryptedPW: encryptedPW, same:same});
+});
+
 /* 세션 로그인 처리 */
 router.post('/login', function(req, res, next) {
   var jsonBody = req.body;
