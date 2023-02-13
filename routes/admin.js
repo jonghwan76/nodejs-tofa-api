@@ -34,10 +34,41 @@ router.post('/encTest', function(req, res, next) {
 /* 세션 로그인 처리 */
 router.post('/login', function(req, res, next) {
   var jsonBody = req.body;
+  // const encryptedPW = "{bcrypt}" + bcrypt.hashSync(jsonBody.password, 10);
+  const encryptedPW = bcrypt.hashSync(jsonBody.password, 10);
+  let param = {email:jsonBody.userId};
+  let format = {language: 'sql', indent: ''};
+  let query = mybatisMapper.getStatement('adminMapper', 'selectLoginInfo', param, format);
 
-  req.session.userId = jsonBody.userId;
-  req.session.is_logined = true;
-  res.send('success login:' + req.session.is_logined);
+  // console.log("enc pass:" + encryptedPW);
+  connection.query(query,function (err, rows, fields) {
+    if(err) {
+      req.session.is_logined = false;
+      console.log('Faild to login user\n' + err);
+      res.send({"result":"500","msg":err});
+    }
+    else {
+      console.log(rows[0].password);
+      if(rows[0].password != null) {
+        const same = bcrypt.compareSync(jsonBody.password, rows[0].password.replaceAll("{bcrypt}",""));
+        console.log("same:" + same);
+        if(same) {
+          req.session.userId = jsonBody.userId;
+          req.session.is_logined = true;
+          res.send({"result":"200","msg":"Login success."});
+        } else {
+          req.session.is_logined = false;
+          res.send({"result":"500","msg":"Login failed."});
+        }
+      } else {
+        req.session.is_logined = false;
+        res.send({"result":"500","msg":"User is not exist"});
+
+      }
+    }
+  });
+
+  // res.send('success login:' + req.session.is_logined);
 });
 
 /* 세션 로그아웃 처리 */
@@ -52,9 +83,9 @@ router.post('/check', function(req, res, next) {
   console.log('login_id:' + req.session.userId);
 
   if(req.session.is_logined){
-    return res.json({message: 'user 있다'});
+    return res.json({"isLogined":true});
   }else{
-    return res.json({message: 'user 없음'});
+    return res.json({"isLogined":false});
   }
 });
 

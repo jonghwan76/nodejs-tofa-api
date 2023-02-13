@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="adminMapper">
+    <!-- 사용자 > 로그인 처리 -->
+    <select id="selectLoginInfo">
+        select
+            password
+        from account a
+        where
+            a.email = #{email}
+            and a.id = 19
+    </select>
+
     <!-- 어드민 > 사용자관리 > 사용자정보 조회 -->
     <select id="selectUserInfo">
         select
