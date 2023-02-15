@@ -7,6 +7,7 @@
  6) npm install session-file-store
  7) npm install mybatis-mapper 
  8) npm install properties-reader
+ 9) npm install bcrypt
  
 
 # PM2 설치

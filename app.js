@@ -9,6 +9,8 @@ var logRouter = require('./routes/log');
 var adminRouter = require('./routes/admin');
 var usersRouter = require('./routes/users');
 const cors = require("cors");
+const session = require('express-session');
+const fileStore = require('session-file-store')(session);
 
 var app = express();
 
@@ -22,9 +24,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(session({
+  secret: "@haAdvanced",
+  resave: false,
+  saveUninitialized: true,
+  store: new fileStore()
+}));
+
 app.use(cors({
   origin: '*', // 모든 출처 허용 옵션. true 를 써도 된다.
 }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/log', logRouter);
