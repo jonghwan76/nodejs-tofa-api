@@ -5,6 +5,7 @@ const mysql = require('mysql2');
 const mybatisMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('config/dev.properties');
+// var properties = PropertiesReader('config/real.properties');
 const conn = {  // mysql 접속 설정
   host: properties.get("host"),
   port: properties.get("port"),

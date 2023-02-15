@@ -9,7 +9,8 @@
             a.email,
             b.login_ip,
             a.account_id,
-            date_format(b.login_time, '%Y-%m-%d %H:%i:%s') as login_time
+            date_format(b.login_time, '%Y-%m-%d %H:%i:%s') as login_time,
+            date_format(b.logout_time, '%Y-%m-%d %H:%i:%s') as logout_time
         from account a
         inner join account_log b on a.account_id = b.account_id
         where b.login_time between str_to_date(#{startDate}, '%Y-%m-%d %H:%i:%s')

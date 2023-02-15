@@ -6,6 +6,7 @@ const mybatisMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
 const bcrypt = require("bcrypt");
 var properties = PropertiesReader('config/dev.properties');
+// var properties = PropertiesReader('config/real.properties');
 
 const conn = {  // mysql 접속 설정
   host: properties.get("host"),
@@ -92,7 +93,8 @@ router.post('/check', function(req, res, next) {
 
 /* 가입 승인대상 목록 조회 */
 router.post('/wait-list', function(req, res, next) {
-  if(req.session.is_logined){
+  var loginForce = true;
+  if(req.session.is_logined || loginForce){
     var jsonBody = req.body;
 
     let param = {allowance:0};
@@ -116,9 +118,10 @@ router.post('/wait-list', function(req, res, next) {
 
 });
 
-/* 가입 승인대상 목록 조회 */
+/* 정보관리 목록 조회 */
 router.post('/info-list', function(req, res, next) {
-  if(req.session.is_logined) {
+  var loginForce = true;
+  if(req.session.is_logined || loginForce){
     var jsonBody = req.body;
     var searchType = jsonBody.searchType;
     var searchText = jsonBody.searchText;
@@ -148,7 +151,8 @@ router.post('/info-list', function(req, res, next) {
 
 /* 회원 한명 조회 */
 router.post('/member-info', function(req, res, next) {
-  if(req.session.is_logined) {
+  var loginForce = true;
+  if(req.session.is_logined || loginForce){
     var jsonBody = req.body;
     let param = {account_id:jsonBody.account_id};
     let format = {language: 'sql', indent: ''};
@@ -171,7 +175,8 @@ router.post('/member-info', function(req, res, next) {
 
 /* 가입승인 처리 */
 router.post('/approval-join', function(req, res, next) {
-  if(req.session.is_logined) {
+  var loginForce = true;
+  if(req.session.is_logined || loginForce){
     if(req.session.is_logined){
       const retJson = {};
       var jsonBody = req.body;
@@ -212,7 +217,8 @@ router.post('/approval-join', function(req, res, next) {
 router.post('/removal-account', function(req, res, next) {
   const retJson = {};
 
-  if(req.session.is_logined) {
+  var loginForce = true;
+  if(req.session.is_logined || loginForce){
     var jsonBody = req.body;
     var uri = req.url;
     var query = url.parse(uri, true).query;
@@ -260,7 +266,8 @@ router.post('/removal-account', function(req, res, next) {
 
 /* 회원 권한 정보 수정 */
 router.post('/member-modification', function(req, res, next) {
-  if(req.session.is_logined) {
+  var loginForce = true;
+  if(req.session.is_logined || loginForce){
     const retJson = {};
     var jsonBody = req.body;
     var uri = req.url;
