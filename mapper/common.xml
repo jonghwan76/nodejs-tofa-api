@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="commonMapper">
+    <!-- 사용자 > 사용자 아이디와 로그인키로 인증 처리 -->
+    <select id="selectAuthKey">
+        select
+            count(*) as cnt
+        from account a
+        where
+            a.access_key = #{access_key}
+            and a.access_key is not null
+    </select>
+
+</mapper>

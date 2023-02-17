@@ -98,6 +98,11 @@
         delete from account_resource where account_id in (?)
     </update>
 
+    <!-- 어드민 > 어드민 로그인 인증키 정보 입력 -->
+    <update id="updateAccountKey">
+        update account set access_key = #{access_key} where email = #{email}
+    </update>
+
     <!-- 어드민 > 사용자관리 > 가입거절시 사용자 삭제 처리 -->
     <delete id="deleteAccountList">
         delete from account where account_id in (?)

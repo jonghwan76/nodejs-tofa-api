@@ -1,8 +1,9 @@
 var express = require('express');
 var url = require('url');
 var router = express.Router();
+var common = require("./common.js");
 const mysql = require('mysql2');
-const mybatisMapper = require('mybatis-mapper');
+const adminMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
 const bcrypt = require("bcrypt");
 var properties = PropertiesReader('config/dev.properties');
@@ -16,7 +17,7 @@ const conn = {  // mysql 접속 설정
   database: properties.get("database")
 };
 
-mybatisMapper.createMapper([ 'mapper/admin.xml' ]);
+adminMapper.createMapper([ 'mapper/admin.xml' ]);
 var connection = mysql.createConnection(conn); // DB 커넥션 생성
 connection.connect();   // DB 접속
 
@@ -39,9 +40,11 @@ router.post('/login', function(req, res, next) {
   const encryptedPW = bcrypt.hashSync(jsonBody.password, 10);
   let param = {email:jsonBody.userId};
   let format = {language: 'sql', indent: ''};
-  let query = mybatisMapper.getStatement('adminMapper', 'selectLoginInfo', param, format);
+  let query = adminMapper.getStatement('adminMapper', 'selectLoginInfo', param, format);  //로그인 정보 조회
 
   // console.log("enc pass:" + encryptedPW);
+  // console.log(Math.random().toString(36).slice(2));
+
   connection.query(query,function (err, rows, fields) {
     if(err) {
       req.session.is_logined = false;
@@ -49,22 +52,35 @@ router.post('/login', function(req, res, next) {
       res.send({"result":"500","msg":err});
     }
     else {
-      console.log(rows[0].password);
+      // console.log(rows[0].password);
       if(rows[0].password != null) {
-        const same = bcrypt.compareSync(jsonBody.password, rows[0].password.replaceAll("{bcrypt}",""));
-        console.log("same:" + same);
-        if(same) {
-          req.session.userId = jsonBody.userId;
-          req.session.is_logined = true;
-          res.send({"result":"200","msg":"Login success."});
+        const same = bcrypt.compareSync(jsonBody.password, rows[0].password.replaceAll("{bcrypt}", ""));
+        // console.log("same:" + same);
+        if (same) {
+          connection.beginTransaction();
+
+          let param1 = {email: param.email, access_key: Math.random().toString(36).slice(2)};
+          let format = {language: 'sql', indent: ''};
+          let query1 = adminMapper.getStatement('adminMapper', 'updateAccountKey', param1, format); //로그인 키 업데이트
+          //로그인 인증키 정보 업데이트
+          connection.query(query1, function (err, rows, fields) {
+            if (err) {
+              connection.rollback();
+              res.send({"result": "500", "msg": "Login failed."});
+            } else {
+              connection.commit();
+              req.session.userId = jsonBody.userId;
+              req.session.is_logined = true;
+              res.send({"result": "200", "msg": "Login success."});
+            }
+          });
         } else {
           req.session.is_logined = false;
-          res.send({"result":"500","msg":"Login failed."});
+          res.send({"result": "500", "msg": "Login failed."});
         }
       } else {
         req.session.is_logined = false;
-        res.send({"result":"500","msg":"User is not exist"});
-
+        res.send({"result": "500", "msg": "User  failed."});
       }
     }
   });
@@ -78,30 +94,19 @@ router.post('/logout', function(req, res, next) {
   res.send('logout')
 });
 
-/* 로그인 여부 체크 */
-router.post('/check', function(req, res, next) {
-  console.log('is login:' + req.session.is_logined);
-  console.log('login_id:' + req.session.userId);
-
-  if(req.session.is_logined){
-    return res.json({"isLogined":true});
-  }else{
-    return res.json({"isLogined":false});
-  }
-});
-
-
 /* 가입 승인대상 목록 조회 */
-router.post('/wait-list', function(req, res, next) {
-  var loginForce = true;
-  if(req.session.is_logined || loginForce){
+router.post('/wait-list', async function(req, res, next) {
+  try {
     var jsonBody = req.body;
-
     let param = {allowance:0};
     let format = {language: 'sql', indent: ''};
-    let query = mybatisMapper.getStatement('adminMapper', 'selectUserList', param, format);
+    let query = adminMapper.getStatement('adminMapper', 'selectUserList', param, format);
 
-    // console.log(query);
+    //로그인 인증키 확인
+    if(!await common.auth_check(jsonBody.access_key)) {
+      res.send("{}");
+      return;
+    }
 
     connection.query(query,function (err, rows, fields) {
       if(err) {
@@ -112,19 +117,23 @@ router.post('/wait-list', function(req, res, next) {
         res.send(rows);
       }
     });
-  }else{
+  } catch(e) {
     res.send("{}");
   }
-
 });
 
 /* 정보관리 목록 조회 */
-router.post('/info-list', function(req, res, next) {
-  var loginForce = true;
-  if(req.session.is_logined || loginForce){
+router.post('/info-list', async function(req, res, next) {
+  try {
     var jsonBody = req.body;
     var searchType = jsonBody.searchType;
     var searchText = jsonBody.searchText;
+
+    //로그인 인증키 확인
+    if(!await common.auth_check(jsonBody.access_key)) {
+      res.send("{}");
+      return;
+    }
 
     let param = {
       allowance:1,
@@ -132,7 +141,7 @@ router.post('/info-list', function(req, res, next) {
       searchText:searchText
     };
     let format = {language: 'sql', indent: ''};
-    let query = mybatisMapper.getStatement('adminMapper', 'selectUserList', param, format);
+    let query = adminMapper.getStatement('adminMapper', 'selectUserList', param, format);
 
     connection.query(query,function (err, rows, fields) {
       if(err) {
@@ -143,20 +152,24 @@ router.post('/info-list', function(req, res, next) {
         res.send(rows);
       }
     });
-  } else {
+  } catch(e) {
     res.send("{}");
   }
-
 });
 
 /* 회원 한명 조회 */
-router.post('/member-info', function(req, res, next) {
-  var loginForce = true;
-  if(req.session.is_logined || loginForce){
+router.post('/member-info', async function(req, res, next) {
+  try {
     var jsonBody = req.body;
     let param = {account_id:jsonBody.account_id};
     let format = {language: 'sql', indent: ''};
-    let query = mybatisMapper.getStatement('adminMapper', 'selectUserInfo', param, format);
+    let query = adminMapper.getStatement('adminMapper', 'selectUserInfo', param, format);
+
+    //로그인 인증키 확인
+    if(!await common.auth_check(jsonBody.access_key)) {
+      res.send("{}");
+      return;
+    }
 
     connection.query(query,function (err, rows, fields) {
       if(err) {
@@ -167,58 +180,55 @@ router.post('/member-info', function(req, res, next) {
         res.send(rows);
       }
     });
-  } else {
+  } catch(e) {
     res.send("{}");
   }
-
 });
 
 /* 가입승인 처리 */
-router.post('/approval-join', function(req, res, next) {
-  var loginForce = true;
-  if(req.session.is_logined || loginForce){
-    if(req.session.is_logined){
-      const retJson = {};
-      var jsonBody = req.body;
-      var account_ids = jsonBody.account_ids;
+router.post('/approval-join', async function(req, res, next) {
+  try {
+    const retJson = {};
+    var jsonBody = req.body;
+    var account_ids = jsonBody.account_ids;
 
-      //어드민 > 사용자관리 > 정보관리 시용자 목록
-      var allowance_query = "update account set allowance = 1 where account_id in (?)";
-      let listArray = jsonBody.account_ids.split(",");
-      connection.beginTransaction();
-
-      connection.query(allowance_query, [listArray], function (err, result, fields) {
-        if(err) {
-          connection.rollback();
-          console.log('query is not excuted. update fail...\n' + err);
-          retJson.result = "500";
-          retJson.msg = "query is not excuted. update fail";
-          res.send(retJson);
-        } else {
-          connection.commit();
-          retJson.result = "200";
-          retJson.msg = "success";
-          res.send(retJson);
-        }
-      });
-    } else {
-      retJson.result = "500";
-      retJson.msg = "query is not excuted. update fail";
-      res.send(retJson);
+    //로그인 인증키 확인
+    if(!await common.auth_check(jsonBody.access_key)) {
+      res.send("{}");
+      return;
     }
-  } else {
+
+    //어드민 > 사용자관리 > 정보관리 시용자 목록
+    var allowance_query = "update account set allowance = 1 where account_id in (?)";
+    let listArray = jsonBody.account_ids.split(",");
+    connection.beginTransaction();
+
+    connection.query(allowance_query, [listArray], function (err, result, fields) {
+      if(err) {
+        connection.rollback();
+        console.log('query is not excuted. update fail...\n' + err);
+        retJson.result = "500";
+        retJson.msg = "query is not excuted. update fail";
+        res.send(retJson);
+      } else {
+        connection.commit();
+        retJson.result = "200";
+        retJson.msg = "success";
+        res.send(retJson);
+      }
+    });
+  } catch(e) {
+    connection.rollback();
     retJson.result = "500";
-    retJson.msg = "login-session is not exist";
+    retJson.msg = e.toString();
     res.send(retJson);
   }
 });
 
 /* 가입거절 처리 */
-router.post('/removal-account', function(req, res, next) {
-  const retJson = {};
-
-  var loginForce = true;
-  if(req.session.is_logined || loginForce){
+router.post('/removal-account', async function(req, res, next) {
+  try {
+    const retJson = {};
     var jsonBody = req.body;
     var uri = req.url;
     var query = url.parse(uri, true).query;
@@ -228,8 +238,14 @@ router.post('/removal-account', function(req, res, next) {
     var delete_query1 = "delete from account_resource where account_id in (?)";
     var delete_query2 = "delete from account where account_id in (?)";
     let listArray = account_ids.split(",");
-    connection.beginTransaction();
 
+    //로그인 인증키 확인
+    if(!await common.auth_check(jsonBody.access_key)) {
+      res.send("{}");
+      return;
+    }
+
+    connection.beginTransaction();
     connection.query(delete_query1, [listArray], function (err, result, fields) {
       if(err) {
         connection.rollback();
@@ -254,20 +270,18 @@ router.post('/removal-account', function(req, res, next) {
         });
       }
     });
-  } else {
+  } catch(e) {
+    connection.rollback();
     retJson.result = "500";
-    retJson.msg = "login-session is not exist";
+    retJson.msg = e.toString();
     res.send(retJson);
   }
-
-
 
 });
 
 /* 회원 권한 정보 수정 */
-router.post('/member-modification', function(req, res, next) {
-  var loginForce = true;
-  if(req.session.is_logined || loginForce){
+router.post('/member-modification', async function(req, res, next) {
+  try {
     const retJson = {};
     var jsonBody = req.body;
     var uri = req.url;
@@ -275,13 +289,18 @@ router.post('/member-modification', function(req, res, next) {
     var resourceCodeList = jsonBody.resourceCodeList;   //파라미터값 - 변경할 권한 코드 목록
     let param1 = {account_id:account_id};
     let format = {language: 'sql', indent: ''};
-    let query1 = mybatisMapper.getStatement('adminMapper', 'deleteResource', param1, format);
-
+    let query1 = adminMapper.getStatement('adminMapper', 'deleteResource', param1, format);
     var ins_res_query = "insert into account_resource(account_id, resources_id) values ?"; //권한 추가 쿼리
     var arrResourceCodeList = resourceCodeList.split(",");
     var resourceValue = [];
     for(var i=0;i<arrResourceCodeList.length;i++) {
       resourceValue[i] = [account_id, arrResourceCodeList[i]]
+    }
+
+    //로그인 인증키 확인
+    if(!await common.auth_check(jsonBody.access_key)) {
+      res.send("{}");
+      return;
     }
 
     connection.beginTransaction();
@@ -312,12 +331,12 @@ router.post('/member-modification', function(req, res, next) {
         });
       }
     });
-  } else {
+  } catch(e) {
+    connection.rollback();
     retJson.result = "500";
-    retJson.msg = "login-session is not exist";
+    retJson.msg = e.toString();
     res.send(retJson);
   }
-
 });
 
 module.exports = router;
