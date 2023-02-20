@@ -47,19 +47,19 @@ router.post('/login', function(req, res, next) {
 
   connection.query(query,function (err, rows, fields) {
     if(err) {
-      req.session.is_logined = false;
       console.log('Faild to login user\n' + err);
       res.send({"result":"500","msg":err});
     }
     else {
+      var username = rows[0].username;
       // console.log(rows[0].password);
       if(rows[0].password != null) {
         const same = bcrypt.compareSync(jsonBody.password, rows[0].password.replaceAll("{bcrypt}", ""));
         // console.log("same:" + same);
         if (same) {
           connection.beginTransaction();
-
-          let param1 = {email: param.email, access_key: Math.random().toString(36).slice(2)};
+          var access_key = Math.random().toString(36).slice(2);
+          let param1 = {email: param.email, access_key: access_key};
           let format = {language: 'sql', indent: ''};
           let query1 = adminMapper.getStatement('adminMapper', 'updateAccountKey', param1, format); //로그인 키 업데이트
           //로그인 인증키 정보 업데이트
@@ -70,16 +70,16 @@ router.post('/login', function(req, res, next) {
             } else {
               connection.commit();
               req.session.userId = jsonBody.userId;
-              req.session.is_logined = true;
-              res.send({"result": "200", "msg": "Login success."});
+              // req.session.is_logined = true;
+              res.send({"result": "200", "msg": "Login success.", "access_key":access_key, "username":username});
             }
           });
         } else {
-          req.session.is_logined = false;
+          // req.session.is_logined = false;
           res.send({"result": "500", "msg": "Login failed."});
         }
       } else {
-        req.session.is_logined = false;
+        // req.session.is_logined = false;
         res.send({"result": "500", "msg": "User  failed."});
       }
     }

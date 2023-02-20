@@ -4,6 +4,7 @@
     <!-- 사용자 > 로그인 처리 -->
     <select id="selectLoginInfo">
         select
+            username,
             password
         from account a
         where
