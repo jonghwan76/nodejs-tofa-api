@@ -8,6 +8,7 @@
         from account a
         where
             a.access_key = #{access_key}
+            and a.client_ip = #{client_ip}
             and a.access_key is not null
     </select>
 

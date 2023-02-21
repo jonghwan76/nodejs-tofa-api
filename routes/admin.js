@@ -8,6 +8,7 @@ var PropertiesReader = require('properties-reader');
 const bcrypt = require("bcrypt");
 var properties = PropertiesReader('config/dev.properties');
 // var properties = PropertiesReader('config/real.properties');
+var requestIp = require('request-ip');
 
 const conn = {  // mysql 접속 설정
   host: properties.get("host"),
@@ -35,6 +36,7 @@ router.post('/encTest', function(req, res, next) {
 
 /* 세션 로그인 처리 */
 router.post('/login', function(req, res, next) {
+  let ip = requestIp.getClientIp(req);
   var jsonBody = req.body;
   // const encryptedPW = "{bcrypt}" + bcrypt.hashSync(jsonBody.password, 10);
   const encryptedPW = bcrypt.hashSync(jsonBody.password, 10);
@@ -59,7 +61,7 @@ router.post('/login', function(req, res, next) {
         if (same) {
           connection.beginTransaction();
           var access_key = Math.random().toString(36).slice(2);
-          let param1 = {email: param.email, access_key: access_key};
+          let param1 = {email: param.email, access_key: access_key, client_ip:ip};
           let format = {language: 'sql', indent: ''};
           let query1 = adminMapper.getStatement('adminMapper', 'updateAccountKey', param1, format); //로그인 키 업데이트
           //로그인 인증키 정보 업데이트
@@ -103,7 +105,7 @@ router.post('/wait-list', async function(req, res, next) {
     let query = adminMapper.getStatement('adminMapper', 'selectUserList', param, format);
 
     //로그인 인증키 확인
-    if(!await common.auth_check(jsonBody.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       res.send("{}");
       return;
     }
@@ -130,7 +132,7 @@ router.post('/info-list', async function(req, res, next) {
     var searchText = jsonBody.searchText;
 
     //로그인 인증키 확인
-    if(!await common.auth_check(jsonBody.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       res.send("{}");
       return;
     }
@@ -166,7 +168,7 @@ router.post('/member-info', async function(req, res, next) {
     let query = adminMapper.getStatement('adminMapper', 'selectUserInfo', param, format);
 
     //로그인 인증키 확인
-    if(!await common.auth_check(jsonBody.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       res.send("{}");
       return;
     }
@@ -193,7 +195,7 @@ router.post('/approval-join', async function(req, res, next) {
     var account_ids = jsonBody.account_ids;
 
     //로그인 인증키 확인
-    if(!await common.auth_check(jsonBody.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       res.send("{}");
       return;
     }
@@ -240,7 +242,7 @@ router.post('/removal-account', async function(req, res, next) {
     let listArray = account_ids.split(",");
 
     //로그인 인증키 확인
-    if(!await common.auth_check(jsonBody.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       res.send("{}");
       return;
     }
@@ -298,7 +300,7 @@ router.post('/member-modification', async function(req, res, next) {
     }
 
     //로그인 인증키 확인
-    if(!await common.auth_check(jsonBody.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       res.send("{}");
       return;
     }
