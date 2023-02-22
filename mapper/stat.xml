@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statMapper">
+    <!-- 통계 > 접속사용자 TOP10 -->
+    <select id="selectTop10User">
+        select
+            XA.dept,
+            XA.username,
+            XA.cnt
+        FROM
+        (
+            select
+                b.dept,
+                b.username,
+                count(*) as cnt
+            from account_log a
+            inner join account b on a.account_id = b.account_id
+            where 1=1
+            <if test="dept != null and dept != ''">
+              and b.dept = #{dept}
+            </if>
+            and login_time between str_to_date(#{startDate}, '%Y-%m-%d %H:%i:%s') and str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s')
+            group by b.dept, b.username
+        ) XA
+        order by cnt desc
+        limit 10
+    </select>
+
+    <!-- 통계 > 접속부서 TOP10 -->
+    <select id="selectTop10Dept">
+        select
+            XA.dept,
+            XA.cnt
+        FROM
+        (
+            select
+                b.dept,
+                count(*) as cnt
+            from account_log a
+            inner join account b on a.account_id = b.account_id
+            where 1=1
+                <if test="dept != null and dept != ''">
+                    and b.dept = #{dept}
+                </if>
+                and login_time between str_to_date(#{startDate}, '%Y-%m-%d %H:%i:%s') and str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s')
+            group by b.dept
+        ) XA
+        order by cnt desc
+        limit 10
+    </select>
+
+    <!-- 통계 > 접속부서 TOP10 -->
+    <select id="selectTop10Menu">
+        select
+            XA.name,
+            XA.cnt
+        FROM
+            (
+                select
+                    c.name,
+                    count(*) as cnt
+                from account_menu_log a
+                inner join account b on a.account_id = b.account_id
+                inner join resources c on a.menu_id = c.resources_id
+                where 1=1
+                    <if test="dept != null and dept != ''">
+                        and b.dept = #{dept}
+                    </if>
+                    and a.menu_time between str_to_date(#{startDate}, '%Y-%m-%d %H:%i:%s') and str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s')
+                group by c.name
+            ) XA
+        order by cnt desc
+        limit 10
+    </select>
+
+</mapper>
