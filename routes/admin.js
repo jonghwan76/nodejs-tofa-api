@@ -6,8 +6,8 @@ const mysql = require('mysql2');
 const adminMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
 const bcrypt = require("bcrypt");
-var properties = PropertiesReader('config/dev.properties');
-// var properties = PropertiesReader('config/real.properties');
+// var properties = PropertiesReader('config/dev.properties');
+var properties = PropertiesReader('config/real.properties');
 var requestIp = require('request-ip');
 
 const conn = {  // mysql 접속 설정
@@ -295,6 +295,11 @@ router.post('/member-modification', async function(req, res, next) {
     var ins_res_query = "insert into account_resource(account_id, resources_id) values ?"; //권한 추가 쿼리
     var arrResourceCodeList = resourceCodeList.split(",");
     var resourceValue = [];
+
+    // console.log("account_id:" + account_id);
+    // console.log("resourceCodeList:" + resourceCodeList);
+    // console.log("access_key:" + jsonBody.access_key);
+
     for(var i=0;i<arrResourceCodeList.length;i++) {
       resourceValue[i] = [account_id, arrResourceCodeList[i]]
     }
