@@ -29,3 +29,8 @@
 # MyBatis 적용
  - https://lts0606.tistory.com/109
  - https://meyouus.tistory.com/92
+
+# PM2 로그
+ - ~/.pm2/logs 에 app-out.log, app-error.log 으로 저장.
+ - out : console.log 등의 일반 레벨 로깅
+ - error : Error 레벨 로깅
