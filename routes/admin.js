@@ -289,10 +289,16 @@ router.post('/member-modification', async function(req, res, next) {
     var uri = req.url;
     var account_id = jsonBody.account_id;               //파라미터값 - 계정아이디
     var resourceCodeList = jsonBody.resourceCodeList;   //파라미터값 - 변경할 권한 코드 목록
+    var role_id = jsonBody.role; //권한 아이디(ADMIN:19, MANAGER:20, USER:21)
+    var user_phone = jsonBody.user_phone; //사용자 전화번호
+
     let param1 = {account_id:account_id};
     let format = {language: 'sql', indent: ''};
     let query1 = adminMapper.getStatement('adminMapper', 'deleteResource', param1, format);
+
     var ins_res_query = "insert into account_resource(account_id, resources_id) values ?"; //권한 추가 쿼리
+    var update_role_query = "update account set id = ?, phone = ? where account_id = ?"; //Role 및 사용자 전화번호 변경 처리
+
     var arrResourceCodeList = resourceCodeList.split(",");
     var resourceValue = [];
 
@@ -321,6 +327,7 @@ router.post('/member-modification', async function(req, res, next) {
         retJson.msg = "query is not excuted. delete fail";
         res.send(retJson);
       } else {
+
         //권한 추가 쿼리
         var str_query = connection.query(ins_res_query, [resourceValue], function (err, result, fields) {
           if(err) {
@@ -329,6 +336,17 @@ router.post('/member-modification', async function(req, res, next) {
             retJson.result = "500";
             retJson.msg = "query is not excuted. insert fail";
             res.send(retJson);
+          }
+        });
+
+        //권한 변경 및 사용자 전화번호 변경 처리
+        connection.query(update_role_query,[role_id, user_phone, account_id], function (err, rows, fields) { // testQuery 실행
+          if(err) {
+            connection.rollback();
+            console.log('query is not excuted. Faild to update.\n' + err);
+            retJson.result = "500";
+            retJson.msg = "query is not excuted. update fail";
+            res.send(retJson);
           } else {
             connection.commit();
             retJson.result = "200";
@@ -336,6 +354,7 @@ router.post('/member-modification', async function(req, res, next) {
             res.send(retJson);
           }
         });
+
       }
     });
   } catch(e) {

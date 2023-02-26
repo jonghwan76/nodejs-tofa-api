@@ -99,6 +99,11 @@
         delete from account_resource where account_id in (?)
     </update>
 
+    <!-- 어드민 > 사용자관리 > 사용자 Role정보 수정 -->
+    <update id="updateAccountRole">
+        update account set id = ${id} where account_id = #{account_id}
+    </update>
+
     <!-- 어드민 > 어드민 로그인 인증키 정보 입력 -->
     <update id="updateAccountKey">
         update account set access_key = #{access_key}, client_ip=#{client_ip} where email = #{email}
