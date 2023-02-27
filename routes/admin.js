@@ -6,8 +6,8 @@ const mysql = require('mysql2');
 const adminMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
 const bcrypt = require("bcrypt");
-// var properties = PropertiesReader('config/dev.properties');
-var properties = PropertiesReader('config/real.properties');
+var properties = PropertiesReader('config/dev.properties');
+// var properties = PropertiesReader('config/real.properties');
 var requestIp = require('request-ip');
 
 const conn = {  // mysql 접속 설정
@@ -53,9 +53,8 @@ router.post('/login', function(req, res, next) {
       res.send({"result":"500","msg":err});
     }
     else {
-      var username = rows[0].username;
-      // console.log(rows[0].password);
-      if(rows[0].password != null) {
+      if(rows.length !=0 && rows[0].password != null) {
+        var username = rows[0].username;
         const same = bcrypt.compareSync(jsonBody.password, rows[0].password.replaceAll("{bcrypt}", ""));
         // console.log("same:" + same);
         if (same) {
@@ -82,7 +81,7 @@ router.post('/login', function(req, res, next) {
         }
       } else {
         // req.session.is_logined = false;
-        res.send({"result": "500", "msg": "User  failed."});
+        res.send({"result": "500", "msg": "Faild to login user."});
       }
     }
   });
@@ -291,13 +290,14 @@ router.post('/member-modification', async function(req, res, next) {
     var resourceCodeList = jsonBody.resourceCodeList;   //파라미터값 - 변경할 권한 코드 목록
     var role_id = jsonBody.role; //권한 아이디(ADMIN:19, MANAGER:20, USER:21)
     var user_phone = jsonBody.user_phone; //사용자 전화번호
+    var dept = jsonBody.dept; //부서
 
     let param1 = {account_id:account_id};
     let format = {language: 'sql', indent: ''};
     let query1 = adminMapper.getStatement('adminMapper', 'deleteResource', param1, format);
 
     var ins_res_query = "insert into account_resource(account_id, resources_id) values ?"; //권한 추가 쿼리
-    var update_role_query = "update account set id = ?, phone = ? where account_id = ?"; //Role 및 사용자 전화번호 변경 처리
+    var update_role_query = "update account set id = ?, phone = ?, dept = ? where account_id = ?"; //Role 및 사용자 전화번호 변경 처리
 
     var arrResourceCodeList = resourceCodeList.split(",");
     var resourceValue = [];
@@ -340,7 +340,7 @@ router.post('/member-modification', async function(req, res, next) {
         });
 
         //권한 변경 및 사용자 전화번호 변경 처리
-        connection.query(update_role_query,[role_id, user_phone, account_id], function (err, rows, fields) { // testQuery 실행
+        connection.query(update_role_query,[role_id, user_phone, dept, account_id], function (err, rows, fields) { // testQuery 실행
           if(err) {
             connection.rollback();
             console.log('query is not excuted. Faild to update.\n' + err);
