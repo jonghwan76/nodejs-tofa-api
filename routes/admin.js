@@ -51,8 +51,7 @@ router.post('/login', function(req, res, next) {
     if(err) {
       console.log('Faild to login user\n' + err);
       res.send({"result":"500","msg":err});
-    }
-    else {
+    } else {
       if(rows.length !=0 && rows[0].password != null) {
         var username = rows[0].username;
         const same = bcrypt.compareSync(jsonBody.password, rows[0].password.replaceAll("{bcrypt}", ""));
@@ -175,13 +174,14 @@ router.post('/member-info', async function(req, res, next) {
     connection.query(query,function (err, rows, fields) {
       if(err) {
         console.log('query is not excuted. select fail...\n' + err);
-        res.send("{}");
+        res.send("{dd}");
       }
       else {
         res.send(rows);
       }
     });
   } catch(e) {
+    console.log(e);
     res.send("{}");
   }
 });
@@ -228,8 +228,8 @@ router.post('/approval-join', async function(req, res, next) {
 
 /* 가입거절 처리 */
 router.post('/removal-account', async function(req, res, next) {
+  const retJson = {};
   try {
-    const retJson = {};
     var jsonBody = req.body;
     var uri = req.url;
     var query = url.parse(uri, true).query;
@@ -258,9 +258,9 @@ router.post('/removal-account', async function(req, res, next) {
         connection.query(delete_query2, [listArray], function (err, result, fields) {
           if(err) {
             connection.rollback();
-            console.log('query is not excuted. delete account fail...\n' + err);
+            console.log('query is not excuted. Failed to delete account.\n' + err);
             retJson.result = "500";
-            retJson.msg = "query is not excuted. delete account fail";
+            retJson.msg = "query is not excuted. Failed to delete account.";
             res.send(retJson);
           } else {
             connection.commit();
@@ -282,8 +282,8 @@ router.post('/removal-account', async function(req, res, next) {
 
 /* 회원 권한 정보 수정 */
 router.post('/member-modification', async function(req, res, next) {
+  const retJson = {};
   try {
-    const retJson = {};
     var jsonBody = req.body;
     var uri = req.url;
     var account_id = jsonBody.account_id;               //파라미터값 - 계정아이디

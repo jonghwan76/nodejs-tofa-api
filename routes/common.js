@@ -28,13 +28,14 @@ module.exports.auth_check = (req, p_access_key) => {
 
     connection.query(queryAuth, function (err, rows, fields) {
       if(err) {
-        console.log('query is not excuted. select fail...\n' + err);
+        console.log('Auth-query is not excuted. select fail...\n' + err);
         resolve(false);
       }
       else {
         if(rows[0].cnt > 0) {
           resolve(true);
         } else {
+          console.log("Authentication failed.");
           resolve(false);
         }
       }
