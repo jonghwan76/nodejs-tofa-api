@@ -134,14 +134,22 @@ router.post('/wait-list', async function(req, res, next) {
 
 /* 정보관리 목록 조회 */
 router.post('/info-list', async function(req, res, next) {
+  const retJson = {};
+
   try {
     var jsonBody = req.body;
     var searchType = jsonBody.searchType;
     var searchText = jsonBody.searchText;
 
+    console.log("searchType:" + searchType);
+    console.log("searchText:" + searchText);
+    console.log("access_key:" + jsonBody.access_key);
+
     //로그인 인증키 확인
     if(!await common.auth_check(req, jsonBody.access_key)) {
-      res.send("{}");
+      retJson.result = "500";
+      retJson.msg = "Access Key is not valid.";
+      res.send(retJson);
       return;
     }
 
@@ -156,19 +164,27 @@ router.post('/info-list', async function(req, res, next) {
     connection.query(query,function (err, rows, fields) {
       if(err) {
         console.log('query is not excuted. select fail...\n' + err);
-        res.send("{}");
+        retJson.result = "550";
+        retJson.msg = "query is not excuted. select fail.";
       }
       else {
-        res.send(rows);
+        retJson.result = "200";
+        retJson.msg = "ok";
+        retJson.data = rows;
       }
+      res.send(retJson);
     });
   } catch(e) {
-    res.send("{}");
+    retJson.result = "550";
+    retJson.msg = e.toString();
+    res.send(retJson);
   }
 });
 
 /* 회원 한명 조회 */
 router.post('/member-info', async function(req, res, next) {
+  const retJson = {};
+
   try {
     var jsonBody = req.body;
     let param = {account_id:jsonBody.account_id};
@@ -177,27 +193,36 @@ router.post('/member-info', async function(req, res, next) {
 
     //로그인 인증키 확인
     if(!await common.auth_check(req, jsonBody.access_key)) {
-      res.send("{}");
+      retJson.result = "500";
+      retJson.msg = "Access Key is not valid.";
+      res.send(retJson);
       return;
     }
 
     connection.query(query,function (err, rows, fields) {
       if(err) {
         console.log('query is not excuted. select fail...\n' + err);
-        res.send("{dd}");
+        retJson.result = "550";
+        retJson.msg = "query is not excuted. select fail.";
       }
       else {
-        res.send(rows);
+        retJson.result = "200";
+        retJson.msg = "ok";
+        retJson.data = rows;
       }
+      res.send(retJson);
     });
   } catch(e) {
-    console.log(e);
-    res.send("{}");
+    retJson.result = "550";
+    retJson.msg = e.toString();
+    res.send(retJson);
   }
 });
 
 /* 가입승인 처리 */
 router.post('/approval-join', async function(req, res, next) {
+  const retJson = {};
+
   try {
     const retJson = {};
     var jsonBody = req.body;
@@ -205,7 +230,9 @@ router.post('/approval-join', async function(req, res, next) {
 
     //로그인 인증키 확인
     if(!await common.auth_check(req, jsonBody.access_key)) {
-      res.send("{}");
+      retJson.result = "500";
+      retJson.msg = "Access Key is not valid.";
+      res.send(retJson);
       return;
     }
 
@@ -218,19 +245,18 @@ router.post('/approval-join', async function(req, res, next) {
       if(err) {
         connection.rollback();
         console.log('query is not excuted. update fail...\n' + err);
-        retJson.result = "500";
+        retJson.result = "550";
         retJson.msg = "query is not excuted. update fail";
-        res.send(retJson);
       } else {
         connection.commit();
         retJson.result = "200";
-        retJson.msg = "success";
-        res.send(retJson);
+        retJson.msg = "ok";
       }
+      res.send(retJson);
     });
   } catch(e) {
     connection.rollback();
-    retJson.result = "500";
+    retJson.result = "550";
     retJson.msg = e.toString();
     res.send(retJson);
   }
@@ -252,7 +278,9 @@ router.post('/removal-account', async function(req, res, next) {
 
     //로그인 인증키 확인
     if(!await common.auth_check(req, jsonBody.access_key)) {
-      res.send("{}");
+      retJson.result = "500";
+      retJson.msg = "Access Key is not valid.";
+      res.send(retJson);
       return;
     }
 
@@ -269,21 +297,20 @@ router.post('/removal-account', async function(req, res, next) {
           if(err) {
             connection.rollback();
             console.log('query is not excuted. Failed to delete account.\n' + err);
-            retJson.result = "500";
+            retJson.result = "550";
             retJson.msg = "query is not excuted. Failed to delete account.";
-            res.send(retJson);
           } else {
             connection.commit();
             retJson.result = "200";
-            retJson.msg = "success";
-            res.send(retJson);
+            retJson.msg = "ok";
           }
+          res.send(retJson);
         });
       }
     });
   } catch(e) {
     connection.rollback();
-    retJson.result = "500";
+    retJson.result = "550";
     retJson.msg = e.toString();
     res.send(retJson);
   }
@@ -322,7 +349,9 @@ router.post('/member-modification', async function(req, res, next) {
 
     //로그인 인증키 확인
     if(!await common.auth_check(req, jsonBody.access_key)) {
-      res.send("{}");
+      retJson.result = "500";
+      retJson.msg = "Access Key is not valid.";
+      res.send(retJson);
       return;
     }
 
@@ -333,7 +362,7 @@ router.post('/member-modification', async function(req, res, next) {
       if(err) {
         connection.rollback();
         console.log('query is not excuted. delete resource fail...\n' + err);
-        retJson.result = "500";
+        retJson.result = "550";
         retJson.msg = "query is not excuted. delete fail";
         res.send(retJson);
       } else {
@@ -343,25 +372,27 @@ router.post('/member-modification', async function(req, res, next) {
           if(err) {
             connection.rollback();
             console.log('query is not excuted. insert fail...\n' + err);
-            retJson.result = "500";
+            retJson.result = "550";
             retJson.msg = "query is not excuted. insert fail";
             res.send(retJson);
-          }
-        });
-
-        //권한 변경 및 사용자 전화번호 변경 처리
-        connection.query(update_role_query,[role_id, user_phone, dept, account_id], function (err, rows, fields) { // testQuery 실행
-          if(err) {
-            connection.rollback();
-            console.log('query is not excuted. Faild to update.\n' + err);
-            retJson.result = "500";
-            retJson.msg = "query is not excuted. update fail";
-            res.send(retJson);
+            return;
           } else {
-            connection.commit();
-            retJson.result = "200";
-            retJson.msg = "success";
-            res.send(retJson);
+
+            //권한 변경 및 사용자 전화번호 변경 처리
+            connection.query(update_role_query,[role_id, user_phone, dept, account_id], function (err, rows, fields) { // testQuery 실행
+              if(err) {
+                connection.rollback();
+                console.log('query is not excuted. Faild to update.\n' + err);
+                retJson.result = "550";
+                retJson.msg = "query is not excuted. update fail";
+              } else {
+                connection.commit();
+                retJson.result = "200";
+                retJson.msg = "ok";
+              }
+              res.send(retJson);
+            });
+
           }
         });
 
@@ -369,7 +400,7 @@ router.post('/member-modification', async function(req, res, next) {
     });
   } catch(e) {
     connection.rollback();
-    retJson.result = "500";
+    retJson.result = "550";
     retJson.msg = e.toString();
     res.send(retJson);
   }
