@@ -32,9 +32,23 @@ app.use(session({
   store: new fileStore()
 }));
 
+// app.use(cors());
+
+/*
 app.use(cors({
   origin: '*', // 모든 출처 허용 옵션. true 를 써도 된다.
 }));
+
+ */
+
+/*
+app.all('/*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  next();
+});
+ */
+
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
