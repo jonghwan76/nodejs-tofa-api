@@ -4,7 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
+// var indexRouter = require('./routes/index');
 var logRouter = require('./routes/log');
 var statRouter = require('./routes/stat');
 var adminRouter = require('./routes/admin');
@@ -32,14 +32,9 @@ app.use(session({
   store: new fileStore()
 }));
 
-// app.use(cors());
-
-/*
 app.use(cors({
   origin: '*', // 모든 출처 허용 옵션. true 를 써도 된다.
 }));
-
- */
 
 /*
 app.all('/*', function(req, res, next) {
@@ -52,7 +47,7 @@ app.all('/*', function(req, res, next) {
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+// app.use('/', indexRouter);
 app.use('/log', logRouter);
 app.use('/stat', statRouter);
 app.use('/api/admin', adminRouter);

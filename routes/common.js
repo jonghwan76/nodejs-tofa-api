@@ -4,8 +4,8 @@ var router = express.Router();
 const mysql = require('mysql2');
 const commonMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
-var properties = PropertiesReader('config/dev.properties');
-// var properties = PropertiesReader('config/real.properties');
+// var properties = PropertiesReader('config/dev.properties');
+var properties = PropertiesReader('config/real.properties');
 var requestIp = require('request-ip');
 
 const conn = {  // mysql 접속 설정

@@ -6,8 +6,8 @@ const mysql = require('mysql2');
 const adminMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
 const bcrypt = require("bcrypt");
-var properties = PropertiesReader('config/dev.properties');
-// var properties = PropertiesReader('config/real.properties');
+// var properties = PropertiesReader('config/dev.properties');
+var properties = PropertiesReader('config/real.properties');
 var requestIp = require('request-ip');
 
 const conn = {  // mysql 접속 설정
