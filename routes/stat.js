@@ -5,8 +5,8 @@ var common = require("./common.js");
 const mysql = require('mysql2');
 const mybatisMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
-// var properties = PropertiesReader('config/dev.properties');
-var properties = PropertiesReader('config/real.properties');
+var properties = PropertiesReader('config/dev.properties');
+// var properties = PropertiesReader('config/real.properties');
 
 const conn = {  // mysql 접속 설정
   host: properties.get("host"),
@@ -21,7 +21,7 @@ var connection = mysql.createConnection(conn); // DB 커넥션 생성
 connection.connect();   // DB 접속
 
 /* 접속사용자 TOP 10 조회 - MyBatis */
-router.get('/top10-user', async function(req, res, next) {
+router.post('/top10-user', async function(req, res, next) {
   const retJson = {};
   try {
     var uri = req.url;
@@ -69,7 +69,7 @@ router.get('/top10-user', async function(req, res, next) {
 });
 
 /* 접속부서 TOP 10 조회 - MyBatis */
-router.get('/top10-dept', async function(req, res, next) {
+router.post('/top10-dept', async function(req, res, next) {
   const retJson = {};
 
   try {
@@ -117,7 +117,7 @@ router.get('/top10-dept', async function(req, res, next) {
 });
 
 /* 조회메뉴 TOP 10 조회 - MyBatis */
-router.get('/top10-menu', async function(req, res, next) {
+router.post('/top10-menu', async function(req, res, next) {
   const retJson = {};
   try {
     var uri = req.url;

@@ -8,7 +8,8 @@
  7) npm install mybatis-mapper 
  8) npm install properties-reader
  9) npm install bcrypt
-10) npm install request-ip --save
+ 10) npm install request-ip --save
+ 11) npm install --save ethers
  
 
 # PM2 설치
