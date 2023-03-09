@@ -5,8 +5,8 @@ var common = require("./common.js");
 const mysql = require('mysql2');
 const mybatisMapper = require('mybatis-mapper');
 var PropertiesReader = require('properties-reader');
-var properties = PropertiesReader('config/dev.properties');
-// var properties = PropertiesReader('config/real.properties');
+// var properties = PropertiesReader('config/dev.properties');
+var properties = PropertiesReader('config/real.properties');
 
 const conn = {  // mysql 접속 설정
   host: properties.get("host"),
@@ -24,23 +24,20 @@ connection.connect();   // DB 접속
 router.post('/top10-user', async function(req, res, next) {
   const retJson = {};
   try {
-    var uri = req.url;
-    var paramURL = url.parse(uri, true).query;
-
-    // var jsonBody = req.body;
+    var jsonBody = req.body;
     var uri = req.url;
 
     let param = {
-      startDate : paramURL.startDate + " 00:00:00",
-      endDate : paramURL.endDate + " 23:59:59",
-      dept : paramURL.dept
+      startDate : jsonBody.startDate + " 00:00:00",
+      endDate : jsonBody.endDate + " 23:59:59",
+      dept : jsonBody.dept
     }
 
     let format = {language: 'sql', indent: ''};
     let query = mybatisMapper.getStatement('statMapper', 'selectTop10User', param, format);
 
     //로그인 인증키 확인
-    if(!await common.auth_check(req, paramURL.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       retJson.result = "500";
       retJson.msg = "Access Key is not valid.";
       res.send(retJson);
@@ -73,21 +70,21 @@ router.post('/top10-dept', async function(req, res, next) {
   const retJson = {};
 
   try {
+
+    var jsonBody = req.body;
     var uri = req.url;
-    var paramURL = url.parse(uri, true).query;
-    // var jsonBody = req.body;
 
     let param = {
-      startDate : paramURL.startDate + " 00:00:00",
-      endDate : paramURL.endDate + " 23:59:59",
-      dept : paramURL.dept
+      startDate : jsonBody.startDate + " 00:00:00",
+      endDate : jsonBody.endDate + " 23:59:59",
+      dept : jsonBody.dept
     }
 
     let format = {language: 'sql', indent: ''};
     let query = mybatisMapper.getStatement('statMapper', 'selectTop10Dept', param, format);
 
     //로그인 인증키 확인
-    if(!await common.auth_check(req, paramURL.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       retJson.result = "500";
       retJson.msg = "Access Key is not valid.";
       res.send(retJson);
@@ -120,21 +117,20 @@ router.post('/top10-dept', async function(req, res, next) {
 router.post('/top10-menu', async function(req, res, next) {
   const retJson = {};
   try {
+    var jsonBody = req.body;
     var uri = req.url;
-    var paramURL = url.parse(uri, true).query;
-    // var jsonBody = req.body;
 
     let param = {
-      startDate : paramURL.startDate + " 00:00:00",
-      endDate : paramURL.endDate + " 23:59:59",
-      dept : paramURL.dept
+      startDate : jsonBody.startDate + " 00:00:00",
+      endDate : jsonBody.endDate + " 23:59:59",
+      dept : jsonBody.dept
     }
 
     let format = {language: 'sql', indent: ''};
     let query = mybatisMapper.getStatement('statMapper', 'selectTop10Menu', param, format);
 
     //로그인 인증키 확인
-    if(!await common.auth_check(req, paramURL.access_key)) {
+    if(!await common.auth_check(req, jsonBody.access_key)) {
       retJson.result = "500";
       retJson.msg = "Access Key is not valid.";
       res.send(retJson);
